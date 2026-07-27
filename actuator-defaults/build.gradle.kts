@@ -20,6 +20,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation("org.springframework.boot:spring-boot-actuator")
     implementation("org.springframework.boot:spring-boot-actuator-autoconfigure")
+    // Jackson annotations to shape the endpoint's JSON (property order + derived override flags).
+    // Ubiquitous in any Boot app — the actuator already serialises responses with Jackson.
+    implementation("com.fasterxml.jackson.core:jackson-annotations")
 
     // --- Optional integrations: present ONLY at compile time -------------------
     // Each is referenced solely from a @ConditionalOnClass-guarded contributor. Spring

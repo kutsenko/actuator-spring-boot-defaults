@@ -47,7 +47,11 @@ class BootDefaultsEndpointWebIntegrationTest {
                 .contains("\"key\":\"connection-timeout\"")
                 .contains("\"defaultValue\":30000")   // Hikari connection-timeout
                 .contains("\"defaultValue\":1800000") // servlet session-timeout (30 min)
-                .contains("\"unit\":\"ms\"");
+                .contains("\"unit\":\"ms\"")
+                // Override flags present at report + group + setting level (nothing configured here).
+                .contains("\"hasOverrides\":false")
+                .contains("\"overriddenCount\":0")
+                .contains("\"overridden\":false");
     }
 
     @SpringBootConfiguration

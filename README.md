@@ -37,18 +37,22 @@ GET /actuator/bootdefaults
 
 ```json
 {
+  "hasOverrides": true,
+  "overriddenCount": 1,
   "groups": [
     {
-      "category": "timeouts",
       "dependency": "HikariCP (JDBC connection pool)",
+      "category": "timeouts",
+      "hasOverrides": true,
+      "overriddenCount": 1,
       "settings": [
         {
           "key": "connection-timeout",
           "property": "spring.datasource.hikari.connection-timeout",
-          "unit": "ms",
+          "overridden": true,
           "defaultValue": 30000,
           "actualValue": 45000,
-          "overridden": true,
+          "unit": "ms",
           "note": null
         }
       ]
@@ -57,10 +61,17 @@ GET /actuator/bootdefaults
 }
 ```
 
+`hasOverrides` / `overriddenCount` are repeated at the report and group level so the caller sees at a
+glance — without comparing every value — whether and where the application diverges from the defaults.
+
 - `defaultValue` — the framework/library default (read from the library itself, so it tracks the
   version you ship). `null` means the framework leaves it unset and the component's own default applies.
 - `actualValue` — the value in force; `null` when nothing is configured (e.g. no data source).
 - `overridden` — `true` when `actualValue` is set and differs from `defaultValue`.
+
+**Ordering:** overridden values surface first. Groups are ordered by how many settings they override
+(most first), and within each group the overridden settings come before the untouched ones — so what
+you actually changed sits at the top of the response.
 
 ## Covered dependencies (first step: timeouts)
 

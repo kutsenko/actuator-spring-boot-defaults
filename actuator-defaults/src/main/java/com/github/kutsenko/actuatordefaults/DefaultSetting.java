@@ -1,5 +1,6 @@
 package com.github.kutsenko.actuatordefaults;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.util.Objects;
 
 /**
@@ -13,9 +14,11 @@ import java.util.Objects;
  * @param defaultValue the framework/library default; {@code null} when the framework leaves it
  *                     unset (the underlying component's own default then applies)
  * @param actualValue  the value in force; {@code null} when nothing is configured (no such bean)
- * @param overridden   whether {@code actualValue} is set and differs from {@code defaultValue}
+ * @param overridden   whether {@code actualValue} is set and differs from {@code defaultValue} —
+ *                     the flag that tells the user, without comparing, that this value was changed
  * @param note         optional human-readable clarification; {@code null} when none applies
  */
+@JsonPropertyOrder({"key", "property", "overridden", "defaultValue", "actualValue", "unit", "note"})
 public record DefaultSetting(
         String key,
         String property,
