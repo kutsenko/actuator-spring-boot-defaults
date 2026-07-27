@@ -2,21 +2,28 @@
 
 A **Spring Boot library** (not an application) that adds an actuator endpoint reporting the
 framework defaults and the values actually in force for the dependencies a consumer ships —
-timeouts first. It integrates into any Boot 4.1.0 / Java 25 app; see [README.md](README.md).
+timeouts first. It integrates into any Boot 4.0 or 4.1 / Java 25 app; see [README.md](README.md).
 Coding conventions are adopted from the `docint-service` project (backend subset).
 
 ## Tech Stack
 
-Java 25 / Spring Boot 4.1.0 / Gradle (Groovy DSL). The library is consumed by other projects,
-so it makes **no assumption about the host application** beyond Java 25 + Boot 4.1.0.
+Java 25 / Spring Boot 4.0–4.1 / Gradle (Groovy DSL). The library is consumed by other projects,
+so it makes **no assumption about the host application** beyond Java 25 + Boot 4.0/4.1.
+
+## Compatibility
+
+Supports Spring Boot **4.0 and 4.1**. Compiled against the floor (4.0.7, `compileOnly`) so the
+bytecode uses only APIs common to both and the published POM pins no Boot version; the consumer's
+own Boot applies. `build` runs the suite against both: `test` (4.0) and `bootCeilingTest` (4.1).
+Bumping the range means editing `bootFloor` / `bootCeiling` in `actuator-defaults/build.gradle`.
 
 ## Build
 
 ```bash
-# Build (compile + test + checkstyle + spotbugs + jacoco coverage gate)
+# Build (compile + tests on Boot 4.0 AND 4.1 + checkstyle + spotbugs + jacoco coverage gate)
 ./gradlew build
 
-# Run tests only
+# Run tests only (Boot 4.0 floor); ceiling run is :actuator-defaults:bootCeilingTest
 ./gradlew test
 
 # Publish the library to the local Maven repo (for trying it in another project)

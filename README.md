@@ -3,7 +3,7 @@
 A small **Spring Boot library** that adds an actuator endpoint exposing, as JSON, the **framework
 defaults** and the **values actually in force** for the dependencies your application ships.
 
-The only prerequisites are **Java 25** and **Spring Boot 4.1.0**. The library makes no other
+The only prerequisites are **Java 25** and **Spring Boot 4.0 or 4.1**. The library makes no other
 assumption about the host application: support for a dependency activates only when that dependency
 is on the classpath, and nothing is forced onto you.
 
@@ -104,7 +104,15 @@ flavours, both registered behind a `@ConditionalOnClass` guard:
   reference none of the integration's types, so the guard names the class as a string and the library
   needs **no compile dependency** on it. Adding a dependency is one catalogue factory + one guarded block.
 
+## Compatibility
+
+The library is compiled against the **floor** version (Spring Boot 4.0) so its bytecode uses only
+APIs present in both 4.0 and 4.1, and it declares its Spring/Boot dependencies `compileOnly` — the
+published artifact pins **no** Boot version, so each consumer's own Boot (4.0 or 4.1) applies. The
+build runs the full test suite against **both** versions: `test` against 4.0 and `bootCeilingTest`
+against 4.1 (both wired into `check`).
+
 ## Requirements
 
 - Java 25
-- Spring Boot 4.1.0
+- Spring Boot 4.0 or 4.1
