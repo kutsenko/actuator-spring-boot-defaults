@@ -4,7 +4,7 @@ plugins {
 
 rootProject.name = "actuator-spring-boot-defaults"
 
-include("app")
+include("actuator-defaults")
 include("checkstyle-rules")
 
 dependencyResolutionManagement {

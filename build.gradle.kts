@@ -126,7 +126,7 @@ subprojects {
         //     configuration via `defaultDependencies`, which fire ONLY when nothing else is
         //     declared here. Declaring our check jar suppresses them → the tool jar itself
         //     vanishes (`ClassNotFoundException: CheckstyleAntTask`). So we re-add checkstyle
-        //     explicitly (its transitives are already lock-pinned in app/gradle.lockfile).
+        //     explicitly (its transitives are already lock-pinned in actuator-defaults/gradle.lockfile).
         //  2) The check is attached as the built JAR *file*, deliberately NOT
         //     `project(":checkstyle-rules")`. A project() dependency stamps JVM-ecosystem variant
         //     attributes onto this legacy attribute-free tool configuration, and Gradle then can't

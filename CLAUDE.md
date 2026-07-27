@@ -1,13 +1,16 @@
 # actuator-spring-boot-defaults — Claude Code Rules
 
-Spring Boot service establishing sensible Actuator defaults. Coding conventions are
-adopted from the `docint-service` project (backend subset).
+A **Spring Boot library** (not an application) that adds an actuator endpoint reporting the
+framework defaults and the values actually in force for the dependencies a consumer ships —
+timeouts first. It integrates into any Boot 4.0.7 / Java 25 app; see [README.md](README.md).
+Coding conventions are adopted from the `docint-service` project (backend subset).
 
 ## Tech Stack
 
-Java 25 / Spring Boot 4.0.7 / Gradle (Kotlin DSL)
+Java 25 / Spring Boot 4.0.7 / Gradle (Kotlin DSL). The library is consumed by other projects,
+so it makes **no assumption about the host application** beyond Java 25 + Boot 4.0.7.
 
-## Build & Run
+## Build
 
 ```bash
 # Build (compile + test + checkstyle + spotbugs + jacoco coverage gate)
@@ -16,11 +19,8 @@ Java 25 / Spring Boot 4.0.7 / Gradle (Kotlin DSL)
 # Run tests only
 ./gradlew test
 
-# Run the application
-./gradlew :app:bootRun
-
-# Build OCI image
-./gradlew :app:bootBuildImage
+# Publish the library to the local Maven repo (for trying it in another project)
+./gradlew :actuator-defaults:publishToMavenLocal
 
 # Dependency vulnerability scan (needs NVD_API_KEY for a full run)
 ./gradlew dependencyCheckAnalyze
@@ -33,8 +33,21 @@ Java 25 / Spring Boot 4.0.7 / Gradle (Kotlin DSL)
 
 | Module | Purpose |
 |--------|---------|
-| `app` | The Spring Boot application. Full quality stack: Checkstyle, SpotBugs, JaCoCo (80%), OWASP, dependency-locking. |
+| `actuator-defaults` | The library. A plain `java-library` (no `bootJar`) shipping the `bootdefaults` actuator endpoint + auto-configuration. Full quality stack: Checkstyle, SpotBugs, JaCoCo (80%), OWASP, dependency-locking. |
 | `checkstyle-rules` | Plain Java library holding the custom `SingleStatementBracesCheck`. Deliberately excluded from the application machinery — it configures itself. |
+
+## Architecture
+
+- **Endpoint / logic separation:** `BootDefaultsEndpoint` (the actuator surface) is a thin adapter
+  over `DefaultsService` (the logic). The service depends on no actuator types and is usable standalone.
+- **Per-dependency contributors:** each dependency implements `DefaultsContributor` and is registered
+  behind `@ConditionalOnClass` in `ActuatorDefaultsAutoConfiguration`. A contributor exists only when
+  its dependency is on the consumer's classpath — that is how "dependency absent → no defaults" holds.
+  Optional integrations are `compileOnly` (never forced onto the consumer).
+- **Adding a dependency:** new `DefaultsContributor` + a `@ConditionalOnClass` nested config block. No
+  change to the service or endpoint.
+- **Defaults are read, not hard-coded:** e.g. Hikari defaults come from `new HikariConfig()`, Mongo from
+  `MongoClientSettings.builder().build()`, so they track the version the consumer actually ships.
 
 ## Coding Conventions
 
