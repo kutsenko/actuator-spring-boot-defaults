@@ -2,29 +2,22 @@
 
 A **Spring Boot library** (not an application) that adds an actuator endpoint reporting the
 framework defaults and the values actually in force for the dependencies a consumer ships —
-timeouts (category `timeouts`) and I/O size limits (category `io`). It integrates into any Boot 4.0
-or 4.1 / Java 25 app; see [README.md](README.md).
+timeouts (category `timeouts`) and I/O size limits (category `io`). It integrates into a Boot 4.1.0
+/ Java 25 app; see [README.md](README.md).
 Coding conventions are adopted from the `docint-service` project (backend subset).
 
 ## Tech Stack
 
-Java 25 / Spring Boot 4.0–4.1 / Gradle (Groovy DSL). The library is consumed by other projects,
-so it makes **no assumption about the host application** beyond Java 25 + Boot 4.0/4.1.
-
-## Compatibility
-
-Supports Spring Boot **4.0 and 4.1**. Compiled against the floor (4.0.7, `compileOnly`) so the
-bytecode uses only APIs common to both and the published POM pins no Boot version; the consumer's
-own Boot applies. `build` runs the suite against both: `test` (4.0) and `bootCeilingTest` (4.1).
-Bumping the range means editing `bootFloor` / `bootCeiling` in `actuator-defaults/build.gradle`.
+Java 25 / Spring Boot 4.1.0 / Gradle (Groovy DSL). The library targets a single Boot version
+(4.1.0) and makes **no assumption about the host application** beyond that + Java 25.
 
 ## Build
 
 ```bash
-# Build (compile + tests on Boot 4.0 AND 4.1 + checkstyle + spotbugs + jacoco coverage gate)
+# Build (compile + test + checkstyle + spotbugs + jacoco coverage gate)
 ./gradlew build
 
-# Run tests only (Boot 4.0 floor); ceiling run is :actuator-defaults:bootCeilingTest
+# Run tests only
 ./gradlew test
 
 # Generate API docs (HTML under build/docs/javadoc); a -javadoc.jar is built by `build`

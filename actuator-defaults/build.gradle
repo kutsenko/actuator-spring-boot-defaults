@@ -1,17 +1,13 @@
 // A plain Spring Boot *library* — NOT a runnable application. It ships an actuator
-// endpoint + auto-configuration that any Boot 4.0.x / 4.1.x, Java 25 app can pull in.
-// It deliberately does NOT apply the `org.springframework.boot` plugin (no bootJar):
+// endpoint + auto-configuration that a Boot 4.1.0 / Java 25 app can pull in. It
+// deliberately does NOT apply the `org.springframework.boot` plugin (no bootJar):
 // the artifact is an ordinary library jar consumed by other projects.
 plugins {
     id 'java-library'
     id 'maven-publish'
 }
 
-// Supported Spring Boot range. The library is COMPILED against the floor so it can only
-// use APIs present in both 4.0 and 4.1 (4.1 is backward compatible), and its tests run
-// against BOTH the floor and the ceiling.
-def bootFloor = '4.0.7'
-def bootCeiling = '4.1.0'
+def springBootVersion = '4.1.0'
 
 // Publish a -javadoc.jar alongside the library (bundled into the `java` component, so the
 // maven-publish `from components.java` picks it up automatically).
@@ -19,29 +15,20 @@ java {
     withJavadocJar()
 }
 
-// Same tests, recompiled and run against the ceiling Boot to prove cross-version compatibility.
-sourceSets {
-    bootCeilingTest {
-        java.srcDirs = ['src/test/java']
-        resources.srcDirs = ['src/test/resources']
-    }
-}
-sourceSets.bootCeilingTest.compileClasspath += sourceSets.main.output
-sourceSets.bootCeilingTest.runtimeClasspath += sourceSets.main.output
-
 dependencies {
-    // --- Compile against the FLOOR, and force no Boot version on consumers ------------
-    // compileOnly: the consumer's own Boot (4.0 or 4.1) provides these at runtime, so the
-    // published artifact pins no Spring/Boot version. Compiling on the floor keeps the
-    // bytecode free of any 4.1-only API.
-    compileOnly platform("org.springframework.boot:spring-boot-dependencies:${bootFloor}")
-    compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
-    compileOnly 'org.springframework.boot:spring-boot-actuator'
-    compileOnly 'org.springframework.boot:spring-boot-actuator-autoconfigure'
-    // Jackson annotations shape the endpoint's JSON (property order + derived override flags).
-    // Always present in a Boot actuator app; kept off the consumer classpath like the rest.
-    compileOnly 'com.fasterxml.jackson.core:jackson-annotations'
+    // Manage every Spring/Boot version through the Boot 4.1.0 BOM.
+    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 
+    // --- Hard dependencies: the library's own reason to exist -----------------
+    // The auto-configuration engine (@AutoConfiguration / @ConditionalOnClass) and the actuator
+    // endpoint machinery (@Endpoint / @ConditionalOnAvailableEndpoint).
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework.boot:spring-boot-actuator'
+    implementation 'org.springframework.boot:spring-boot-actuator-autoconfigure'
+    // Jackson annotations shape the endpoint's JSON (property order + derived override flags).
+    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+
+    // --- Optional integrations ------------------------------------------------
     // Typed contributors read actual values off live beans, so they compile against the
     // library's types (defaults come from the library itself — HikariConfig(), MongoClientSettings).
     compileOnly 'com.zaxxer:HikariCP'             // JDBC connection pool (PostgreSQL, MySQL, …)
@@ -49,12 +36,10 @@ dependencies {
     //
     // Property-based contributors read the *actual* values off the Environment and never reference
     // the integration's types, so they need NO compile dependency at all — their @ConditionalOnClass
-    // guard names the class as a string. This is what keeps the library able to target any consumer:
-    // embedded servers (Tomcat/Jetty/Reactor Netty), the HTTP clients, Redis, Elasticsearch, etc.
-    // are matched purely by classpath presence.
+    // guard names the class as a string (embedded servers, HTTP clients, Redis, Elasticsearch, Kafka,
+    // Logback, …). They are matched purely by the consumer's classpath.
 
-    // --- Default test run: against the FLOOR (4.0) -----------------------------------
-    testImplementation platform("org.springframework.boot:spring-boot-dependencies:${bootFloor}")
+    // --- Tests: pull the optional integrations in so their contributors are exercised ---
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.zaxxer:HikariCP'
     testImplementation 'org.mongodb:mongodb-driver-core'
@@ -62,44 +47,6 @@ dependencies {
     // endpoint over HTTP to prove the JSON contract. NOT part of the library's own deps.
     testImplementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator'
-
-    // --- Compatibility test run: the same tests against the CEILING (4.1) ------------
-    // Versions of junit/assertj/mockito are managed by the ceiling Boot BOM, so no explicit
-    // versions are needed here.
-    bootCeilingTestImplementation platform("org.springframework.boot:spring-boot-dependencies:${bootCeiling}")
-    bootCeilingTestImplementation 'org.springframework.boot:spring-boot-starter-test'
-    bootCeilingTestImplementation 'org.junit.jupiter:junit-jupiter'
-    bootCeilingTestImplementation 'org.assertj:assertj-core'
-    bootCeilingTestImplementation 'org.mockito:mockito-core'
-    bootCeilingTestImplementation 'org.mockito:mockito-junit-jupiter'
-    bootCeilingTestImplementation 'com.zaxxer:HikariCP'
-    bootCeilingTestImplementation 'org.mongodb:mongodb-driver-core'
-    bootCeilingTestImplementation 'org.springframework.boot:spring-boot-starter-web'
-    bootCeilingTestImplementation 'org.springframework.boot:spring-boot-starter-actuator'
-    bootCeilingTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-// The lockfile pins the floor; the ceiling test classpath is intentionally left unlocked.
-configurations.matching { it.name.startsWith('bootCeilingTest') }.configureEach {
-    resolutionStrategy.deactivateDependencyLocking()
-}
-
-def bootCeilingTest = tasks.register('bootCeilingTest', Test) {
-    description = "Runs the test suite against Spring Boot ${bootCeiling} (cross-version compatibility)."
-    group = 'verification'
-    testClassesDirs = sourceSets.bootCeilingTest.output.classesDirs
-    classpath = sourceSets.bootCeilingTest.runtimeClasspath
-    shouldRunAfter tasks.named('test')
-}
-
-tasks.named('check') {
-    dependsOn bootCeilingTest
-}
-
-// The ceiling source set recompiles the identical test sources; Checkstyle/SpotBugs already
-// vetted them on the default test source set, so skip the redundant duplicate linting.
-tasks.matching { it.name in ['checkstyleBootCeilingTest', 'spotbugsBootCeilingTest'] }.configureEach {
-    enabled = false
 }
 
 // Consumed as a normal Maven dependency (artifact: com.github.kutsenko:actuator-defaults).
