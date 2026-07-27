@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<suppressions>
+    <!-- Add project-specific suppressions here, each with a comment explaining why.
+         Example (constructor injection exceeding the 3-parameter limit):
+         <suppress checks="ParameterNumber"
+                   files="[\\/]domain[\\/]service[\\/].*ServiceImpl\.java$"/> -->
+</suppressions>

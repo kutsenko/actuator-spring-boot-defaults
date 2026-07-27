@@ -1,0 +1,34 @@
+// Custom Checkstyle checks (arc42 §8.10 enforcement). Deliberately a plain Java
+// module: it is excluded from the root `subprojects {}` block (which applies
+// Spring Boot, JaCoCo 80% coverage, SpotBugs, OWASP, dependency-locking) via a
+// guard in the root build, so it carries none of that machinery.
+plugins {
+    java
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+dependencies {
+    // Compile against the Checkstyle API only; the check runs inside Checkstyle's
+    // own classpath at runtime. Non-transitive keeps this off the dependency-
+    // verification path (the checkstyle jar itself is already trusted).
+    compileOnly("com.puppycrawl.tools:checkstyle:13.8.0") {
+        isTransitive = false
+    }
+
+    // Tests drive the real Checkstyle engine (public Checker API) over source snippets,
+    // so they need the full transitive tool tree here. This module is excluded from the
+    // root dependencyLocking, so no lockfile is produced.
+    testImplementation("com.puppycrawl.tools:checkstyle:13.8.0")
+    testImplementation(platform("org.junit:junit-bom:6.1.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}

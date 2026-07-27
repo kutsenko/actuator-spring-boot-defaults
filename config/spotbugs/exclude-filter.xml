@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- DTO/domain Builder classes: mutable state is intentional; records copy in constructors -->
+    <Match>
+        <Class name="~.*\$Builder"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Spring-managed singleton beans stored in private final fields (constructor injection)
+         trip the EI_EXPOSE_REP2 "may expose internal representation" false positive.
+         Defensive-copying a singleton bean is nonsensical; add per-class Matches here as the
+         codebase grows, each with a note on which injected collaborator triggers it. -->
+</FindBugsFilter>

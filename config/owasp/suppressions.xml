@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <!--
+        OWASP Dependency-Check Suppressions.
+
+        Each suppression must include:
+        - The CVE or GHSA identifier
+        - A <notes> element explaining WHY it is not exploitable in this project
+        - A reference to the advisory
+
+        Review this file quarterly and remove entries for resolved vulnerabilities.
+    -->
+</suppressions>
