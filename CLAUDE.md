@@ -2,13 +2,13 @@
 
 A **Spring Boot library** (not an application) that adds an actuator endpoint reporting the
 framework defaults and the values actually in force for the dependencies a consumer ships —
-timeouts first. It integrates into any Boot 4.0.7 / Java 25 app; see [README.md](README.md).
+timeouts first. It integrates into any Boot 4.1.0 / Java 25 app; see [README.md](README.md).
 Coding conventions are adopted from the `docint-service` project (backend subset).
 
 ## Tech Stack
 
-Java 25 / Spring Boot 4.0.7 / Gradle (Groovy DSL). The library is consumed by other projects,
-so it makes **no assumption about the host application** beyond Java 25 + Boot 4.0.7.
+Java 25 / Spring Boot 4.1.0 / Gradle (Groovy DSL). The library is consumed by other projects,
+so it makes **no assumption about the host application** beyond Java 25 + Boot 4.1.0.
 
 ## Build
 
