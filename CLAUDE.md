@@ -33,7 +33,7 @@ so it makes **no assumption about the host application** beyond Java 25 + Boot 4
 
 | Module | Purpose |
 |--------|---------|
-| `actuator-defaults` | The library. A plain `java-library` (no `bootJar`) shipping the `bootdefaults` actuator endpoint + auto-configuration. Full quality stack: Checkstyle, SpotBugs, JaCoCo (80%), OWASP, dependency-locking. |
+| `actuator-defaults` | The library. A plain `java-library` (no `bootJar`) shipping the `bootdefaults` actuator endpoint + auto-configuration. Full quality stack: Checkstyle, SpotBugs, JaCoCo (95%), OWASP, dependency-locking. |
 | `checkstyle-rules` | Plain Java library holding the custom `SingleStatementBracesCheck`. Deliberately excluded from the application machinery — it configures itself. |
 
 ## Architecture
@@ -72,7 +72,7 @@ so it makes **no assumption about the host application** beyond Java 25 + Boot 4
 ### General
 - **English only** — all code, comments, commits, docs, specs
 - **TDD** — write tests before implementation (Red → Green → Refactor)
-- **80% line coverage** minimum (JaCoCo); the `check` task fails below it
+- **95% line coverage** minimum (JaCoCo); the `check` task fails below it
 - Line length max 120; 4-space indent; Google Java Style base (see `config/checkstyle/checkstyle.xml`)
 
 ## Commit Messages
@@ -102,7 +102,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`
 |------|--------|------|
 | Checkstyle | `config/checkstyle/checkstyle.xml` (+ `suppressions.xml`) | `isIgnoreFailures = false` |
 | SpotBugs | `config/spotbugs/exclude-filter.xml` | effort MAX, confidence MEDIUM |
-| JaCoCo | root `build.gradle.kts` | 80% line coverage |
+| JaCoCo | root `build.gradle.kts` | 95% line coverage |
 | OWASP Dependency-Check | `config/owasp/suppressions.xml` | fail on CVSS ≥ 7.0 |
 
 ## References

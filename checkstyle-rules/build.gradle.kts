@@ -1,6 +1,6 @@
 // Custom Checkstyle checks (arc42 §8.10 enforcement). Deliberately a plain Java
 // module: it is excluded from the root `subprojects {}` block (which applies
-// Spring Boot, JaCoCo 80% coverage, SpotBugs, OWASP, dependency-locking) via a
+// Spring Boot, JaCoCo 95% coverage, SpotBugs, OWASP, dependency-locking) via a
 // guard in the root build, so it carries none of that machinery.
 plugins {
     java

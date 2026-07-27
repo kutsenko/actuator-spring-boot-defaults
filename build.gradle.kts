@@ -16,7 +16,7 @@ allprojects {
 subprojects {
     // The custom-Checkstyle-rules module is a plain Java library on the Checkstyle
     // tool classpath; it must NOT inherit the application machinery (Boot, JaCoCo
-    // 80% coverage, SpotBugs, OWASP, dependency-locking). It configures itself.
+    // 95% coverage, SpotBugs, OWASP, dependency-locking). It configures itself.
     if (name == "checkstyle-rules") return@subprojects
 
     apply(plugin = "java")
@@ -72,7 +72,7 @@ subprojects {
         violationRules {
             rule {
                 limit {
-                    minimum = "0.80".toBigDecimal()
+                    minimum = "0.95".toBigDecimal()
                 }
             }
         }
