@@ -7,7 +7,7 @@ Coding conventions are adopted from the `docint-service` project (backend subset
 
 ## Tech Stack
 
-Java 25 / Spring Boot 4.0.7 / Gradle (Kotlin DSL). The library is consumed by other projects,
+Java 25 / Spring Boot 4.0.7 / Gradle (Groovy DSL). The library is consumed by other projects,
 so it makes **no assumption about the host application** beyond Java 25 + Boot 4.0.7.
 
 ## Build
@@ -102,7 +102,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`
 |------|--------|------|
 | Checkstyle | `config/checkstyle/checkstyle.xml` (+ `suppressions.xml`) | `isIgnoreFailures = false` |
 | SpotBugs | `config/spotbugs/exclude-filter.xml` | effort MAX, confidence MEDIUM |
-| JaCoCo | root `build.gradle.kts` | 95% line coverage |
+| JaCoCo | root `build.gradle` | 95% line coverage |
 | OWASP Dependency-Check | `config/owasp/suppressions.xml` | fail on CVSS ≥ 7.0 |
 
 ## References
