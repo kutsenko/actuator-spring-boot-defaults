@@ -87,9 +87,17 @@ you actually changed sits at the top of the response.
 | Servlet web (Spring MVC) | `…web.servlet.DispatcherServlet` | `server.servlet.session.timeout`, `spring.mvc.async.request-timeout` |
 | Redis (Spring Data Redis / Lettuce) | `…redis.connection.RedisConnectionFactory` | `spring.data.redis.timeout`, `connect-timeout`, `lettuce.shutdown-timeout` |
 | Elasticsearch REST client | `org.elasticsearch.client.RestClient` | `spring.elasticsearch.connection-timeout`, `socket-timeout` |
+| Apache Kafka (Spring for Apache Kafka) | `org.springframework.kafka.core.KafkaTemplate` | `spring.kafka.consumer.*`, `listener.poll-timeout`, `admin.close-timeout` |
 
 A dependency that is **not** on the classpath produces **no group** — nothing is guessed. (Undertow is
 not covered: Spring Boot 4.0 no longer ships it as an embedded server.)
+
+**Analysed but not covered — MinIO and Keycloak.** Neither exposes its timeouts through Spring Boot
+configuration properties: the MinIO SDK sets connect/write/read timeouts programmatically on its OkHttp
+client (`MinioClient.setTimeout(...)`, no getter), and the Keycloak admin client configures them on the
+underlying JAX-RS/Resteasy client. With no property surface and no readable effective value, a
+contributor could show neither a meaningful actual value nor the `overridden` flag, so they are left out
+rather than reported with always-null values.
 
 ## Design
 

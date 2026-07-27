@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.kutsenko.actuatordefaults.autoconfigure.ActuatorDefaultsAutoConfiguration.ElasticsearchDefaultsConfiguration;
 import com.github.kutsenko.actuatordefaults.autoconfigure.ActuatorDefaultsAutoConfiguration.JettyDefaultsConfiguration;
+import com.github.kutsenko.actuatordefaults.autoconfigure.ActuatorDefaultsAutoConfiguration.KafkaDefaultsConfiguration;
 import com.github.kutsenko.actuatordefaults.autoconfigure.ActuatorDefaultsAutoConfiguration.ReactiveHttpClientDefaultsConfiguration;
 import com.github.kutsenko.actuatordefaults.autoconfigure.ActuatorDefaultsAutoConfiguration.ReactorNettyDefaultsConfiguration;
 import com.github.kutsenko.actuatordefaults.autoconfigure.ActuatorDefaultsAutoConfiguration.RedisDefaultsConfiguration;
@@ -13,7 +14,7 @@ import org.springframework.mock.env.MockEnvironment;
 
 /**
  * Exercises the bean methods of the nested configurations whose guard class is not on the test
- * classpath (Jetty, Reactor Netty, reactive WebClient, Redis, Elasticsearch). {@code
+ * classpath (Jetty, Reactor Netty, reactive WebClient, Redis, Elasticsearch, Kafka). {@code
  * ActuatorDefaultsAutoConfigurationTest} already covers the wiring for the classes that <em>are</em>
  * present (Tomcat, servlet, Hikari, Mongo, blocking HTTP); this pins the remaining factory blocks
  * without dragging their libraries onto the classpath.
@@ -39,5 +40,8 @@ class ActuatorDefaultsAutoConfigurationBeanMethodsTest {
         assertThat(new ElasticsearchDefaultsConfiguration()
                 .elasticsearchTimeoutDefaultsContributor(environment).contribute().dependency())
                 .contains("Elasticsearch");
+        assertThat(new KafkaDefaultsConfiguration()
+                .kafkaTimeoutDefaultsContributor(environment).contribute().dependency())
+                .contains("Kafka");
     }
 }

@@ -58,7 +58,8 @@ class PropertyTimeoutDefaultsContributorTest {
                 PropertyTimeoutDefaultsContributor::reactorNetty,
                 PropertyTimeoutDefaultsContributor::servletWeb,
                 PropertyTimeoutDefaultsContributor::redis,
-                PropertyTimeoutDefaultsContributor::elasticsearch);
+                PropertyTimeoutDefaultsContributor::elasticsearch,
+                PropertyTimeoutDefaultsContributor::kafka);
 
         assertThat(factories).allSatisfy(factory -> {
             var group = factory.apply(environment).contribute();

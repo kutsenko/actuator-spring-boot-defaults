@@ -147,4 +147,28 @@ public final class PropertyTimeoutDefaultsContributor implements DefaultsContrib
                 Spec.of("connection-timeout", "spring.elasticsearch.connection-timeout", 1_000L),
                 Spec.of("socket-timeout", "spring.elasticsearch.socket-timeout", 30_000L)), environment);
     }
+
+    /**
+     * Apache Kafka (Spring for Apache Kafka). Spring Boot leaves every timeout unset, delegating to
+     * the Kafka client / listener-container defaults noted below. Only properties common to Boot 4.0
+     * and 4.1 are listed (the 4.1-only {@code spring.kafka.template.close-timeout} is omitted to keep
+     * the catalogue version-neutral).
+     */
+    public static PropertyTimeoutDefaultsContributor kafka(Environment environment) {
+        return new PropertyTimeoutDefaultsContributor("Apache Kafka (Spring for Apache Kafka)", List.of(
+                Spec.unset("consumer-fetch-max-wait", "spring.kafka.consumer.fetch-max-wait",
+                        "Spring Boot leaves this unset; the Kafka consumer default applies "
+                                + "(fetch.max.wait.ms = 500ms)."),
+                Spec.unset("consumer-max-poll-interval", "spring.kafka.consumer.max-poll-interval",
+                        "Spring Boot leaves this unset; the Kafka consumer default applies "
+                                + "(max.poll.interval.ms = 5min)."),
+                Spec.unset("consumer-heartbeat-interval", "spring.kafka.consumer.heartbeat-interval",
+                        "Spring Boot leaves this unset; the Kafka consumer default applies "
+                                + "(heartbeat.interval.ms = 3s)."),
+                Spec.unset("listener-poll-timeout", "spring.kafka.listener.poll-timeout",
+                        "Spring Boot leaves this unset; the listener container default applies (5s)."),
+                Spec.unset("admin-close-timeout", "spring.kafka.admin.close-timeout",
+                        "Spring Boot leaves this unset; Spring's KafkaAdmin close timeout applies.")),
+                environment);
+    }
 }

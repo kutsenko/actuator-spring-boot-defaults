@@ -161,4 +161,14 @@ public class ActuatorDefaultsAutoConfiguration {
             return PropertyTimeoutDefaultsContributor.elasticsearch(environment);
         }
     }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "org.springframework.kafka.core.KafkaTemplate")
+    static class KafkaDefaultsConfiguration {
+
+        @Bean
+        PropertyTimeoutDefaultsContributor kafkaTimeoutDefaultsContributor(Environment environment) {
+            return PropertyTimeoutDefaultsContributor.kafka(environment);
+        }
+    }
 }

@@ -56,7 +56,7 @@ Bumping the range means editing `bootFloor` / `bootCeiling` in `actuator-default
     Guarded by the class literal; the library depends on the type `compileOnly`.
   - **Property-based** (`PropertyTimeoutDefaultsContributor`): read actual values off the `Environment`,
     reference none of the integration's types, and guard by class **name** — so the library needs **no
-    compile dependency** on them (Tomcat/Jetty/Netty, WebClient, Redis, Elasticsearch, servlet/MVC).
+    compile dependency** on them (Tomcat/Jetty/Netty, WebClient, Redis, Elasticsearch, Kafka, servlet/MVC).
     Defaults come from each Boot module's `spring-configuration-metadata.json`.
 - **Adding a dependency:** a catalogue factory on `PropertyTimeoutDefaultsContributor` (or a typed
   contributor) + one `@ConditionalOnClass` nested config block. No change to the service or endpoint.
