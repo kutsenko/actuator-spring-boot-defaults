@@ -26,7 +26,10 @@ Bumping the range means editing `bootFloor` / `bootCeiling` in `actuator-default
 # Run tests only (Boot 4.0 floor); ceiling run is :actuator-defaults:bootCeilingTest
 ./gradlew test
 
-# Publish the library to the local Maven repo (for trying it in another project)
+# Generate API docs (HTML under build/docs/javadoc); a -javadoc.jar is built by `build`
+./gradlew :actuator-defaults:javadoc
+
+# Publish the library to the local Maven repo (main jar + -javadoc.jar)
 ./gradlew :actuator-defaults:publishToMavenLocal
 
 # Dependency vulnerability scan (needs NVD_API_KEY for a full run)

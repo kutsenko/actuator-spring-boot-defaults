@@ -58,6 +58,16 @@ subprojects {
         jvmArgs '--enable-preview'
     }
 
+    tasks.withType(Javadoc).configureEach {
+        options.encoding = 'UTF-8'
+        // Match the compile flags so preview-enabled sources are parsed the same way.
+        options.source = '25'
+        options.addBooleanOption('-enable-preview', true)
+        // Keep the HTML/reference doclint checks, but don't fail on missing @param/@return —
+        // the intent is to *generate* the docs, not gate the build on tag completeness.
+        options.addStringOption('Xdoclint:all,-missing', '-quiet')
+    }
+
     jacoco {
         toolVersion = '0.8.14'
     }

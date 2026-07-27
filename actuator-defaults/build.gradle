@@ -13,6 +13,12 @@ plugins {
 def bootFloor = '4.0.7'
 def bootCeiling = '4.1.0'
 
+// Publish a -javadoc.jar alongside the library (bundled into the `java` component, so the
+// maven-publish `from components.java` picks it up automatically).
+java {
+    withJavadocJar()
+}
+
 // Same tests, recompiled and run against the ceiling Boot to prove cross-version compatibility.
 sourceSets {
     bootCeilingTest {

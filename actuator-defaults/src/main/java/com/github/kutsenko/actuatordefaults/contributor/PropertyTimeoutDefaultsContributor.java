@@ -18,7 +18,7 @@ import org.springframework.core.env.Environment;
  * <p>Defaults were taken from the Boot 4.0.7 {@code spring-configuration-metadata.json} of each
  * module. Where Boot ships a concrete numeric default it is reported; where Boot leaves the property
  * unset (the component's own default then applies) the default is {@code null} with an explanatory
- * note. Reused across dependencies via {@link #of}/{@link #unset}.
+ * note. Reused across dependencies via {@link Spec#of}/{@link Spec#unset}.
  */
 public final class PropertyTimeoutDefaultsContributor implements DefaultsContributor {
 
