@@ -64,20 +64,34 @@ GET /actuator/bootdefaults
 
 ## Covered dependencies (first step: timeouts)
 
-| Dependency | Activates when on classpath | Settings |
-|------------|-----------------------------|----------|
+| Dependency | Activates when on classpath (guard) | Settings |
+|------------|-------------------------------------|----------|
 | HikariCP (JDBC — PostgreSQL, MySQL, …) | `com.zaxxer.hikari.HikariDataSource` | connection-, validation-, idle-, max-lifetime, keepalive |
 | MongoDB driver | `com.mongodb.MongoClientSettings` | connect-, read-, server-selection-, max-wait |
 | Spring HTTP client (RestClient / RestTemplate) | `org.springframework.web.client.RestClient` | connect-, read-timeout (`spring.http.client.*`) |
+| Spring reactive HTTP client (WebClient) | `…reactive.function.client.WebClient` | connect-, read-timeout (`spring.http.reactiveclient.*`) |
+| Embedded Tomcat | `org.apache.catalina.startup.Tomcat` | `server.tomcat.connection-timeout`, `keep-alive-timeout` |
+| Embedded Jetty | `org.eclipse.jetty.server.Server` | `server.jetty.connection-idle-timeout`, `threads.idle-timeout` |
+| Embedded Reactor Netty (reactive) | `reactor.netty.http.server.HttpServer` | `server.netty.connection-timeout`, `idle-timeout` |
+| Servlet web (Spring MVC) | `…web.servlet.DispatcherServlet` | `server.servlet.session.timeout`, `spring.mvc.async.request-timeout` |
+| Redis (Spring Data Redis / Lettuce) | `…redis.connection.RedisConnectionFactory` | `spring.data.redis.timeout`, `connect-timeout`, `lettuce.shutdown-timeout` |
+| Elasticsearch REST client | `org.elasticsearch.client.RestClient` | `spring.elasticsearch.connection-timeout`, `socket-timeout` |
 
-A dependency that is **not** on the classpath produces **no group** — nothing is guessed.
+A dependency that is **not** on the classpath produces **no group** — nothing is guessed. (Undertow is
+not covered: Spring Boot 4.0 no longer ships it as an embedded server.)
 
 ## Design
 
 `BootDefaultsEndpoint` (the actuator surface) is a thin adapter over `DefaultsService` (the logic),
-which aggregates the `DefaultsContributor` beans present in the context. Each contributor is
-registered behind `@ConditionalOnClass`, so adding a new dependency is a new contributor plus a
-guarded config block — no change to the service or the endpoint.
+which aggregates the `DefaultsContributor` beans present in the context. Contributors come in two
+flavours, both registered behind a `@ConditionalOnClass` guard:
+
+- **Typed** (Hikari, Mongo): read the actual values off the live bean and the defaults from the
+  library itself (`new HikariConfig()`, `MongoClientSettings.builder().build()`).
+- **Property-based** (`PropertyTimeoutDefaultsContributor`): read the actual values off the
+  `Environment` and pair them with the Boot default from the module's configuration metadata. These
+  reference none of the integration's types, so the guard names the class as a string and the library
+  needs **no compile dependency** on it. Adding a dependency is one catalogue factory + one guarded block.
 
 ## Requirements
 

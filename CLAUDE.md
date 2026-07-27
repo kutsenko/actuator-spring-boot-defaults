@@ -43,11 +43,16 @@ so it makes **no assumption about the host application** beyond Java 25 + Boot 4
 - **Per-dependency contributors:** each dependency implements `DefaultsContributor` and is registered
   behind `@ConditionalOnClass` in `ActuatorDefaultsAutoConfiguration`. A contributor exists only when
   its dependency is on the consumer's classpath — that is how "dependency absent → no defaults" holds.
-  Optional integrations are `compileOnly` (never forced onto the consumer).
-- **Adding a dependency:** new `DefaultsContributor` + a `@ConditionalOnClass` nested config block. No
-  change to the service or endpoint.
-- **Defaults are read, not hard-coded:** e.g. Hikari defaults come from `new HikariConfig()`, Mongo from
-  `MongoClientSettings.builder().build()`, so they track the version the consumer actually ships.
+  Two flavours:
+  - **Typed** (Hikari, Mongo): read actual values off the live bean; defaults from the library itself
+    (`new HikariConfig()`, `MongoClientSettings.builder().build()`) so they track the shipped version.
+    Guarded by the class literal; the library depends on the type `compileOnly`.
+  - **Property-based** (`PropertyTimeoutDefaultsContributor`): read actual values off the `Environment`,
+    reference none of the integration's types, and guard by class **name** — so the library needs **no
+    compile dependency** on them (Tomcat/Jetty/Netty, WebClient, Redis, Elasticsearch, servlet/MVC).
+    Defaults come from each Boot module's `spring-configuration-metadata.json`.
+- **Adding a dependency:** a catalogue factory on `PropertyTimeoutDefaultsContributor` (or a typed
+  contributor) + one `@ConditionalOnClass` nested config block. No change to the service or endpoint.
 
 ## Coding Conventions
 

@@ -42,8 +42,11 @@ class BootDefaultsEndpointWebIntegrationTest {
                 .contains("HikariCP (JDBC connection pool)")
                 .contains("MongoDB driver")
                 .contains("Spring HTTP client")
+                .contains("Embedded Tomcat (servlet web server)")
+                .contains("Servlet web (Spring MVC)")
                 .contains("\"key\":\"connection-timeout\"")
-                .contains("\"defaultValue\":30000")
+                .contains("\"defaultValue\":30000")   // Hikari connection-timeout
+                .contains("\"defaultValue\":1800000") // servlet session-timeout (30 min)
                 .contains("\"unit\":\"ms\"");
     }
 

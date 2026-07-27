@@ -4,8 +4,8 @@ import com.github.kutsenko.actuatordefaults.BootDefaultsEndpoint;
 import com.github.kutsenko.actuatordefaults.DefaultsContributor;
 import com.github.kutsenko.actuatordefaults.DefaultsService;
 import com.github.kutsenko.actuatordefaults.contributor.HikariTimeoutDefaultsContributor;
-import com.github.kutsenko.actuatordefaults.contributor.HttpClientTimeoutDefaultsContributor;
 import com.github.kutsenko.actuatordefaults.contributor.MongoTimeoutDefaultsContributor;
+import com.github.kutsenko.actuatordefaults.contributor.PropertyTimeoutDefaultsContributor;
 import com.mongodb.MongoClientSettings;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.ObjectProvider;
@@ -16,17 +16,25 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.web.client.RestClient;
 
 /**
- * Auto-configuration for the boot-defaults endpoint.
+ * Auto-configuration for the {@code bootdefaults} endpoint.
  *
  * <p>Always registers the {@link DefaultsService} and, when actuator endpoints are available, the
  * {@link BootDefaultsEndpoint}. The per-dependency {@link DefaultsContributor}s live in nested
- * {@code @ConditionalOnClass}-guarded configurations, so a contributor bean is created only when
- * its dependency is on the consumer's classpath — that is the mechanism behind "dependency absent
- * → no defaults determined for it". Adding support for a new dependency is a new nested block; no
- * change to the service or endpoint.
+ * {@code @ConditionalOnClass}-guarded configurations, so a contributor bean is created only when its
+ * dependency is on the consumer's classpath — that is the mechanism behind "dependency absent → no
+ * defaults determined for it".
+ *
+ * <p>Two contributor flavours:
+ * <ul>
+ *   <li><b>Typed</b> (Hikari, Mongo): read actual values off the live bean, so they guard on the
+ *       class literal and read defaults from the library itself.
+ *   <li><b>Property-based</b> ({@link PropertyTimeoutDefaultsContributor}): read actual values off the
+ *       {@link Environment}, so they reference none of the integration's types and guard by class
+ *       <em>name</em> — no compile dependency. Adding a dependency is one more nested block + one
+ *       catalogue factory.
+ * </ul>
  */
 @AutoConfiguration
 public class ActuatorDefaultsAutoConfiguration {
@@ -44,7 +52,8 @@ public class ActuatorDefaultsAutoConfiguration {
         return new BootDefaultsEndpoint(defaultsService);
     }
 
-    /** Contributed only when HikariCP is on the classpath. */
+    // ---- typed contributors -----------------------------------------------------------
+
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(HikariDataSource.class)
     static class HikariDefaultsConfiguration {
@@ -57,7 +66,6 @@ public class ActuatorDefaultsAutoConfiguration {
         }
     }
 
-    /** Contributed only when the MongoDB driver is on the classpath. */
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(MongoClientSettings.class)
     static class MongoDefaultsConfiguration {
@@ -70,15 +78,87 @@ public class ActuatorDefaultsAutoConfiguration {
         }
     }
 
-    /** Contributed only when Spring's HTTP client ({@code spring-web}) is on the classpath. */
+    // ---- property-based contributors (guarded by class name — no compile dependency) --
+    // All produce the same bean type, so each carries a distinct bean name and no
+    // @ConditionalOnMissingBean(type) — that would collapse them to a single bean.
+
     @Configuration(proxyBeanMethods = false)
-    @ConditionalOnClass(RestClient.class)
+    @ConditionalOnClass(name = "org.springframework.web.client.RestClient")
     static class HttpClientDefaultsConfiguration {
 
         @Bean
-        @ConditionalOnMissingBean
-        HttpClientTimeoutDefaultsContributor httpClientTimeoutDefaultsContributor(Environment environment) {
-            return new HttpClientTimeoutDefaultsContributor(environment);
+        PropertyTimeoutDefaultsContributor httpClientTimeoutDefaultsContributor(Environment environment) {
+            return PropertyTimeoutDefaultsContributor.httpClient(environment);
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "org.springframework.web.reactive.function.client.WebClient")
+    static class ReactiveHttpClientDefaultsConfiguration {
+
+        @Bean
+        PropertyTimeoutDefaultsContributor reactiveHttpClientTimeoutDefaultsContributor(Environment environment) {
+            return PropertyTimeoutDefaultsContributor.reactiveHttpClient(environment);
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "org.apache.catalina.startup.Tomcat")
+    static class TomcatDefaultsConfiguration {
+
+        @Bean
+        PropertyTimeoutDefaultsContributor tomcatTimeoutDefaultsContributor(Environment environment) {
+            return PropertyTimeoutDefaultsContributor.tomcat(environment);
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "org.eclipse.jetty.server.Server")
+    static class JettyDefaultsConfiguration {
+
+        @Bean
+        PropertyTimeoutDefaultsContributor jettyTimeoutDefaultsContributor(Environment environment) {
+            return PropertyTimeoutDefaultsContributor.jetty(environment);
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "reactor.netty.http.server.HttpServer")
+    static class ReactorNettyDefaultsConfiguration {
+
+        @Bean
+        PropertyTimeoutDefaultsContributor reactorNettyTimeoutDefaultsContributor(Environment environment) {
+            return PropertyTimeoutDefaultsContributor.reactorNetty(environment);
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "org.springframework.web.servlet.DispatcherServlet")
+    static class ServletWebDefaultsConfiguration {
+
+        @Bean
+        PropertyTimeoutDefaultsContributor servletWebTimeoutDefaultsContributor(Environment environment) {
+            return PropertyTimeoutDefaultsContributor.servletWeb(environment);
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "org.springframework.data.redis.connection.RedisConnectionFactory")
+    static class RedisDefaultsConfiguration {
+
+        @Bean
+        PropertyTimeoutDefaultsContributor redisTimeoutDefaultsContributor(Environment environment) {
+            return PropertyTimeoutDefaultsContributor.redis(environment);
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "org.elasticsearch.client.RestClient")
+    static class ElasticsearchDefaultsConfiguration {
+
+        @Bean
+        PropertyTimeoutDefaultsContributor elasticsearchTimeoutDefaultsContributor(Environment environment) {
+            return PropertyTimeoutDefaultsContributor.elasticsearch(environment);
         }
     }
 }
