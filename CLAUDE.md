@@ -2,7 +2,8 @@
 
 A **Spring Boot library** (not an application) that adds an actuator endpoint reporting the
 framework defaults and the values actually in force for the dependencies a consumer ships —
-timeouts first. It integrates into any Boot 4.0 or 4.1 / Java 25 app; see [README.md](README.md).
+timeouts (category `timeouts`) and I/O size limits (category `io`). It integrates into any Boot 4.0
+or 4.1 / Java 25 app; see [README.md](README.md).
 Coding conventions are adopted from the `docint-service` project (backend subset).
 
 ## Tech Stack

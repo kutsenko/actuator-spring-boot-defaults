@@ -35,17 +35,23 @@ public record DefaultSetting(
     }
 
     /**
-     * Builds a millisecond-valued setting, deriving {@code overridden} = "actual is set and
+     * Builds a setting in an arbitrary unit, deriving {@code overridden} = "actual is set and
      * differs from the default".
      */
+    public static DefaultSetting of(
+            String key, String property, String unit, Long defaultValue, Long actualValue, String note) {
+        var overridden = actualValue != null && !actualValue.equals(defaultValue);
+        return new DefaultSetting(key, property, unit, defaultValue, actualValue, overridden, note);
+    }
+
+    /** A millisecond-valued setting (unit {@code "ms"}). */
     public static DefaultSetting ofMillis(String key, String property, Long defaultMillis, Long actualMillis) {
-        return ofMillis(key, property, defaultMillis, actualMillis, null);
+        return of(key, property, "ms", defaultMillis, actualMillis, null);
     }
 
     /** As {@link #ofMillis(String, String, Long, Long)} but attaches an explanatory {@code note}. */
     public static DefaultSetting ofMillis(
             String key, String property, Long defaultMillis, Long actualMillis, String note) {
-        var overridden = actualMillis != null && !actualMillis.equals(defaultMillis);
-        return new DefaultSetting(key, property, "ms", defaultMillis, actualMillis, overridden, note);
+        return of(key, property, "ms", defaultMillis, actualMillis, note);
     }
 }

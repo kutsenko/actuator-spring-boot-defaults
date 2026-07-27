@@ -25,15 +25,20 @@ class ActuatorDefaultsAutoConfigurationBeanMethodsTest {
 
     @Test
     void classpathAbsentConfigurationsStillBuildTheirContributors() {
-        assertThat(new JettyDefaultsConfiguration()
-                .jettyTimeoutDefaultsContributor(environment).contribute().dependency())
-                .contains("Jetty");
-        assertThat(new ReactorNettyDefaultsConfiguration()
-                .reactorNettyTimeoutDefaultsContributor(environment).contribute().dependency())
+        var jetty = new JettyDefaultsConfiguration();
+        assertThat(jetty.jettyTimeoutDefaultsContributor(environment).contribute().dependency()).contains("Jetty");
+        assertThat(jetty.jettyIoDefaultsContributor(environment).contribute().category()).isEqualTo("io");
+
+        var netty = new ReactorNettyDefaultsConfiguration();
+        assertThat(netty.reactorNettyTimeoutDefaultsContributor(environment).contribute().dependency())
                 .contains("Netty");
-        assertThat(new ReactiveHttpClientDefaultsConfiguration()
-                .reactiveHttpClientTimeoutDefaultsContributor(environment).contribute().dependency())
+        assertThat(netty.reactorNettyIoDefaultsContributor(environment).contribute().category()).isEqualTo("io");
+
+        var reactive = new ReactiveHttpClientDefaultsConfiguration();
+        assertThat(reactive.reactiveHttpClientTimeoutDefaultsContributor(environment).contribute().dependency())
                 .contains("reactive");
+        assertThat(reactive.webfluxMultipartIoDefaultsContributor(environment).contribute().dependency())
+                .contains("WebFlux");
         assertThat(new RedisDefaultsConfiguration()
                 .redisTimeoutDefaultsContributor(environment).contribute().dependency())
                 .contains("Redis");

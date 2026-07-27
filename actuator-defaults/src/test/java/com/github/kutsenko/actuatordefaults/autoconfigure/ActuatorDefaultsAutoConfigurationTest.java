@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.github.kutsenko.actuatordefaults.DefaultsGroup;
 import com.github.kutsenko.actuatordefaults.DefaultsService;
 import com.mongodb.MongoClientSettings;
+import ch.qos.logback.classic.LoggerContext;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.List;
 import org.apache.catalina.startup.Tomcat;
@@ -34,7 +35,10 @@ class ActuatorDefaultsAutoConfigurationTest {
                         "HikariCP (JDBC connection pool)",
                         "MongoDB driver (MongoClientSettings)",
                         "Embedded Tomcat (servlet web server)",
+                        "Embedded Tomcat (request/response size limits)", // io group
                         "Servlet web (Spring MVC)",
+                        "Servlet multipart (file uploads)",               // io group
+                        "Logback rolling log files",                      // io group
                         "Spring HTTP client (RestClient / RestTemplate)"));
     }
 
@@ -59,7 +63,8 @@ class ActuatorDefaultsAutoConfigurationTest {
                         MongoClientSettings.class,
                         Tomcat.class,
                         DispatcherServlet.class,
-                        RestClient.class))
+                        RestClient.class,
+                        LoggerContext.class))
                 .run(context -> assertThat(dependencies(context)).isEmpty());
     }
 

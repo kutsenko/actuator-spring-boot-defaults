@@ -5,7 +5,7 @@ import com.github.kutsenko.actuatordefaults.DefaultsContributor;
 import com.github.kutsenko.actuatordefaults.DefaultsService;
 import com.github.kutsenko.actuatordefaults.contributor.HikariTimeoutDefaultsContributor;
 import com.github.kutsenko.actuatordefaults.contributor.MongoTimeoutDefaultsContributor;
-import com.github.kutsenko.actuatordefaults.contributor.PropertyTimeoutDefaultsContributor;
+import com.github.kutsenko.actuatordefaults.contributor.PropertyDefaultsContributor;
 import com.mongodb.MongoClientSettings;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.ObjectProvider;
@@ -24,16 +24,16 @@ import org.springframework.core.env.Environment;
  * {@link BootDefaultsEndpoint}. The per-dependency {@link DefaultsContributor}s live in nested
  * {@code @ConditionalOnClass}-guarded configurations, so a contributor bean is created only when its
  * dependency is on the consumer's classpath — that is the mechanism behind "dependency absent → no
- * defaults determined for it".
+ * defaults determined for it". A dependency may contribute more than one group (e.g. Tomcat reports
+ * both a {@code timeouts} and an {@code io} group).
  *
  * <p>Two contributor flavours:
  * <ul>
- *   <li><b>Typed</b> (Hikari, Mongo): read actual values off the live bean, so they guard on the
- *       class literal and read defaults from the library itself.
- *   <li><b>Property-based</b> ({@link PropertyTimeoutDefaultsContributor}): read actual values off the
- *       {@link Environment}, so they reference none of the integration's types and guard by class
- *       <em>name</em> — no compile dependency. Adding a dependency is one more nested block + one
- *       catalogue factory.
+ *   <li><b>Typed</b> (Hikari, Mongo): read actual values off the live bean, guard on the class
+ *       literal, read defaults from the library itself.
+ *   <li><b>Property-based</b> ({@link PropertyDefaultsContributor}): read actual values off the
+ *       {@link Environment}, reference none of the integration's types, and guard by class
+ *       <em>name</em> — no compile dependency.
  * </ul>
  */
 @AutoConfiguration
@@ -87,8 +87,8 @@ public class ActuatorDefaultsAutoConfiguration {
     static class HttpClientDefaultsConfiguration {
 
         @Bean
-        PropertyTimeoutDefaultsContributor httpClientTimeoutDefaultsContributor(Environment environment) {
-            return PropertyTimeoutDefaultsContributor.httpClient(environment);
+        PropertyDefaultsContributor httpClientTimeoutDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.httpClient(environment);
         }
     }
 
@@ -97,8 +97,13 @@ public class ActuatorDefaultsAutoConfiguration {
     static class ReactiveHttpClientDefaultsConfiguration {
 
         @Bean
-        PropertyTimeoutDefaultsContributor reactiveHttpClientTimeoutDefaultsContributor(Environment environment) {
-            return PropertyTimeoutDefaultsContributor.reactiveHttpClient(environment);
+        PropertyDefaultsContributor reactiveHttpClientTimeoutDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.reactiveHttpClient(environment);
+        }
+
+        @Bean
+        PropertyDefaultsContributor webfluxMultipartIoDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.webfluxMultipart(environment);
         }
     }
 
@@ -107,8 +112,13 @@ public class ActuatorDefaultsAutoConfiguration {
     static class TomcatDefaultsConfiguration {
 
         @Bean
-        PropertyTimeoutDefaultsContributor tomcatTimeoutDefaultsContributor(Environment environment) {
-            return PropertyTimeoutDefaultsContributor.tomcat(environment);
+        PropertyDefaultsContributor tomcatTimeoutDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.tomcat(environment);
+        }
+
+        @Bean
+        PropertyDefaultsContributor tomcatIoDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.tomcatIo(environment);
         }
     }
 
@@ -117,8 +127,13 @@ public class ActuatorDefaultsAutoConfiguration {
     static class JettyDefaultsConfiguration {
 
         @Bean
-        PropertyTimeoutDefaultsContributor jettyTimeoutDefaultsContributor(Environment environment) {
-            return PropertyTimeoutDefaultsContributor.jetty(environment);
+        PropertyDefaultsContributor jettyTimeoutDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.jetty(environment);
+        }
+
+        @Bean
+        PropertyDefaultsContributor jettyIoDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.jettyIo(environment);
         }
     }
 
@@ -127,8 +142,13 @@ public class ActuatorDefaultsAutoConfiguration {
     static class ReactorNettyDefaultsConfiguration {
 
         @Bean
-        PropertyTimeoutDefaultsContributor reactorNettyTimeoutDefaultsContributor(Environment environment) {
-            return PropertyTimeoutDefaultsContributor.reactorNetty(environment);
+        PropertyDefaultsContributor reactorNettyTimeoutDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.reactorNetty(environment);
+        }
+
+        @Bean
+        PropertyDefaultsContributor reactorNettyIoDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.reactorNettyIo(environment);
         }
     }
 
@@ -137,8 +157,13 @@ public class ActuatorDefaultsAutoConfiguration {
     static class ServletWebDefaultsConfiguration {
 
         @Bean
-        PropertyTimeoutDefaultsContributor servletWebTimeoutDefaultsContributor(Environment environment) {
-            return PropertyTimeoutDefaultsContributor.servletWeb(environment);
+        PropertyDefaultsContributor servletWebTimeoutDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.servletWeb(environment);
+        }
+
+        @Bean
+        PropertyDefaultsContributor servletMultipartIoDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.servletMultipart(environment);
         }
     }
 
@@ -147,8 +172,8 @@ public class ActuatorDefaultsAutoConfiguration {
     static class RedisDefaultsConfiguration {
 
         @Bean
-        PropertyTimeoutDefaultsContributor redisTimeoutDefaultsContributor(Environment environment) {
-            return PropertyTimeoutDefaultsContributor.redis(environment);
+        PropertyDefaultsContributor redisTimeoutDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.redis(environment);
         }
     }
 
@@ -157,8 +182,8 @@ public class ActuatorDefaultsAutoConfiguration {
     static class ElasticsearchDefaultsConfiguration {
 
         @Bean
-        PropertyTimeoutDefaultsContributor elasticsearchTimeoutDefaultsContributor(Environment environment) {
-            return PropertyTimeoutDefaultsContributor.elasticsearch(environment);
+        PropertyDefaultsContributor elasticsearchTimeoutDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.elasticsearch(environment);
         }
     }
 
@@ -167,8 +192,18 @@ public class ActuatorDefaultsAutoConfiguration {
     static class KafkaDefaultsConfiguration {
 
         @Bean
-        PropertyTimeoutDefaultsContributor kafkaTimeoutDefaultsContributor(Environment environment) {
-            return PropertyTimeoutDefaultsContributor.kafka(environment);
+        PropertyDefaultsContributor kafkaTimeoutDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.kafka(environment);
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "ch.qos.logback.classic.LoggerContext")
+    static class LogbackDefaultsConfiguration {
+
+        @Bean
+        PropertyDefaultsContributor logbackIoDefaultsContributor(Environment environment) {
+            return PropertyDefaultsContributor.logback(environment);
         }
     }
 }

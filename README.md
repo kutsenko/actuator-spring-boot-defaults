@@ -7,7 +7,8 @@ The only prerequisites are **Java 25** and **Spring Boot 4.0 or 4.1**. The libra
 assumption about the host application: support for a dependency activates only when that dependency
 is on the classpath, and nothing is forced onto you.
 
-The first release covers **timeouts**.
+The first releases cover **timeouts** (category `timeouts`, unit `ms`) and **I/O size limits**
+(category `io`, unit `bytes`) — buffers, file-upload and request/response size knobs.
 
 ## Install
 
@@ -73,7 +74,9 @@ glance — without comparing every value — whether and where the application d
 (most first), and within each group the overridden settings come before the untouched ones — so what
 you actually changed sits at the top of the response.
 
-## Covered dependencies (first step: timeouts)
+## Covered dependencies
+
+### Timeouts (`category: timeouts`, `unit: ms`)
 
 | Dependency | Activates when on classpath (guard) | Settings |
 |------------|-------------------------------------|----------|
@@ -88,6 +91,17 @@ you actually changed sits at the top of the response.
 | Redis (Spring Data Redis / Lettuce) | `…redis.connection.RedisConnectionFactory` | `spring.data.redis.timeout`, `connect-timeout`, `lettuce.shutdown-timeout` |
 | Elasticsearch REST client | `org.elasticsearch.client.RestClient` | `spring.elasticsearch.connection-timeout`, `socket-timeout` |
 | Apache Kafka (Spring for Apache Kafka) | `org.springframework.kafka.core.KafkaTemplate` | `spring.kafka.consumer.*`, `listener.poll-timeout`, `admin.close-timeout` |
+
+### I/O sizes (`category: io`, `unit: bytes`)
+
+| Dependency | Activates when on classpath (guard) | Settings |
+|------------|-------------------------------------|----------|
+| Servlet multipart (file uploads) | `…web.servlet.DispatcherServlet` | `spring.servlet.multipart.max-file-size`, `max-request-size`, `file-size-threshold` |
+| WebFlux multipart (reactive uploads) | `…reactive.function.client.WebClient` | `spring.webflux.multipart.max-in-memory-size`, `max-headers-size` |
+| Embedded Tomcat | `org.apache.catalina.startup.Tomcat` | `server.max-http-request-header-size`, `server.tomcat.max-http-response-header-size`, `max-http-form-post-size`, `max-swallow-size` |
+| Embedded Jetty | `org.eclipse.jetty.server.Server` | `server.jetty.max-http-form-post-size`, `max-http-response-header-size` |
+| Embedded Reactor Netty | `reactor.netty.http.server.HttpServer` | `server.netty.max-initial-line-length`, `initial-buffer-size`, `h2c-max-content-length` |
+| Logback rolling log files | `ch.qos.logback.classic.LoggerContext` | `logging.logback.rollingpolicy.max-file-size`, `total-size-cap` |
 
 A dependency that is **not** on the classpath produces **no group** — nothing is guessed. (Undertow is
 not covered: Spring Boot 4.0 no longer ships it as an embedded server.)

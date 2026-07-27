@@ -7,4 +7,9 @@
          Example (constructor injection exceeding the 3-parameter limit):
          <suppress checks="ParameterNumber"
                    files="[\\/]domain[\\/]service[\\/].*ServiceImpl\.java$"/> -->
+
+    <!-- Internal fan-in constructor bundling the catalogue kind + its data; the public API is the
+         one-argument static factories, so the parameter count is not an API concern. -->
+    <suppress checks="ParameterNumber"
+              files="[\\/]contributor[\\/]PropertyDefaultsContributor\.java$"/>
 </suppressions>
