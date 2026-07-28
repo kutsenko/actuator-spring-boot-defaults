@@ -1,6 +1,12 @@
 package com.github.kutsenko.actuatordefaults.contributor;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -21,26 +27,27 @@ class MongoTimeoutDefaultsContributorTest {
 
         var group = new MongoTimeoutDefaultsContributor(provider(actual)).contribute();
 
-        assertThat(group.dependency()).contains("MongoDB");
+        assertThat(group.dependency(), containsString("MongoDB"));
 
         var connectTimeout = settingByKey(group.settings(), "connect-timeout");
-        assertThat(connectTimeout.defaultValue()).isEqualTo(10_000L); // driver default
-        assertThat(connectTimeout.actualValue()).isEqualTo(2_500L);
-        assertThat(connectTimeout.overridden()).isTrue();
+        assertThat(connectTimeout.defaultValue(), is(10_000L)); // driver default
+        assertThat(connectTimeout.actualValue(), is(2_500L));
+        assertThat(connectTimeout.overridden(), is(true));
 
         var serverSelection = settingByKey(group.settings(), "server-selection-timeout");
-        assertThat(serverSelection.actualValue()).isEqualTo(serverSelection.defaultValue());
-        assertThat(serverSelection.overridden()).isFalse();
+        assertThat(serverSelection.actualValue(), is(serverSelection.defaultValue()));
+        assertThat(serverSelection.overridden(), is(false));
     }
 
     @Test
     void reportsDefaultsWithNullActualsWhenNoSettingsBean() {
         var group = new MongoTimeoutDefaultsContributor(provider()).contribute();
 
-        assertThat(group.settings()).isNotEmpty().allSatisfy(setting -> {
-            assertThat(setting.defaultValue()).isNotNull();
-            assertThat(setting.actualValue()).isNull();
-        });
+        assertThat(group.settings(), is(not(empty())));
+        for (var setting : group.settings()) {
+            assertThat(setting.defaultValue(), is(notNullValue()));
+            assertThat(setting.actualValue(), is(nullValue()));
+        }
     }
 
     private static DefaultSetting settingByKey(List<DefaultSetting> settings, String key) {

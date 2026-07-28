@@ -1,6 +1,10 @@
 package com.github.kutsenko.actuatordefaults;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import org.junit.jupiter.api.Test;
@@ -32,26 +36,25 @@ class BootDefaultsEndpointWebIntegrationTest {
                 .retrieve()
                 .toEntity(String.class);
 
-        assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getHeaders().getContentType()).isNotNull();
-        assertThat(response.getHeaders().getContentType().toString()).contains("json");
+        assertThat(response.getStatusCode().value(), is(200));
+        assertThat(response.getHeaders().getContentType(), is(notNullValue()));
+        assertThat(response.getHeaders().getContentType().toString(), containsString("json"));
 
-        var body = response.getBody();
-        assertThat(body)
-                .contains("\"groups\"")
-                .contains("HikariCP (JDBC connection pool)")
-                .contains("MongoDB driver")
-                .contains("Spring HTTP client")
-                .contains("Embedded Tomcat (servlet web server)")
-                .contains("Servlet web (Spring MVC)")
-                .contains("\"key\":\"connection-timeout\"")
-                .contains("\"defaultValue\":30000")   // Hikari connection-timeout
-                .contains("\"defaultValue\":1800000") // servlet session-timeout (30 min)
-                .contains("\"unit\":\"ms\"")
+        assertThat(response.getBody(), allOf(
+                containsString("\"groups\""),
+                containsString("HikariCP (JDBC connection pool)"),
+                containsString("MongoDB driver"),
+                containsString("Spring HTTP client"),
+                containsString("Embedded Tomcat (servlet web server)"),
+                containsString("Servlet web (Spring MVC)"),
+                containsString("\"key\":\"connection-timeout\""),
+                containsString("\"defaultValue\":30000"),   // Hikari connection-timeout
+                containsString("\"defaultValue\":1800000"), // servlet session-timeout (30 min)
+                containsString("\"unit\":\"ms\""),
                 // Override flags present at report + group + setting level (nothing configured here).
-                .contains("\"hasOverrides\":false")
-                .contains("\"overriddenCount\":0")
-                .contains("\"overridden\":false");
+                containsString("\"hasOverrides\":false"),
+                containsString("\"overriddenCount\":0"),
+                containsString("\"overridden\":false")));
     }
 
     @SpringBootConfiguration

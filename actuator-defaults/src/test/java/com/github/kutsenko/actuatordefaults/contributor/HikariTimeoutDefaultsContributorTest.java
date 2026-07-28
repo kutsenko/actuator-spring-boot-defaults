@@ -1,11 +1,18 @@
 package com.github.kutsenko.actuatordefaults.contributor;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.github.kutsenko.actuatordefaults.DefaultSetting;
 import com.zaxxer.hikari.HikariDataSource;
+import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
@@ -19,18 +26,18 @@ class HikariTimeoutDefaultsContributorTest {
 
             var group = new HikariTimeoutDefaultsContributor(provider(dataSource)).contribute();
 
-            assertThat(group.category()).isEqualTo("timeouts");
-            assertThat(group.dependency()).contains("HikariCP");
+            assertThat(group.category(), is("timeouts"));
+            assertThat(group.dependency(), containsString("HikariCP"));
 
             var connectionTimeout = settingByKey(group.settings(), "connection-timeout");
-            assertThat(connectionTimeout.defaultValue()).isEqualTo(30_000L);
-            assertThat(connectionTimeout.actualValue()).isEqualTo(45_000L);
-            assertThat(connectionTimeout.overridden()).isTrue();
+            assertThat(connectionTimeout.defaultValue(), is(30_000L));
+            assertThat(connectionTimeout.actualValue(), is(45_000L));
+            assertThat(connectionTimeout.overridden(), is(true));
 
             // A value left at Hikari's default must NOT be flagged as overridden.
             var idleTimeout = settingByKey(group.settings(), "idle-timeout");
-            assertThat(idleTimeout.actualValue()).isEqualTo(idleTimeout.defaultValue());
-            assertThat(idleTimeout.overridden()).isFalse();
+            assertThat(idleTimeout.actualValue(), is(idleTimeout.defaultValue()));
+            assertThat(idleTimeout.overridden(), is(false));
         }
     }
 
@@ -38,14 +45,15 @@ class HikariTimeoutDefaultsContributorTest {
     void reportsDefaultsWithNullActualsWhenNoDataSourceConfigured() {
         var group = new HikariTimeoutDefaultsContributor(provider()).contribute();
 
-        assertThat(group.settings()).isNotEmpty().allSatisfy(setting -> {
-            assertThat(setting.defaultValue()).isNotNull();
-            assertThat(setting.actualValue()).isNull();
-            assertThat(setting.overridden()).isFalse();
-        });
+        assertThat(group.settings(), is(not(empty())));
+        for (var setting : group.settings()) {
+            assertThat(setting.defaultValue(), is(notNullValue()));
+            assertThat(setting.actualValue(), is(nullValue()));
+            assertThat(setting.overridden(), is(false));
+        }
     }
 
-    private static DefaultSetting settingByKey(java.util.List<DefaultSetting> settings, String key) {
+    private static DefaultSetting settingByKey(List<DefaultSetting> settings, String key) {
         return settings.stream().filter(s -> s.key().equals(key)).findFirst().orElseThrow();
     }
 

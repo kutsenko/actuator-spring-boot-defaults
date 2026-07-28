@@ -1,7 +1,11 @@
 package com.github.kutsenko.actuatordefaults;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -20,13 +24,17 @@ class DefaultsServiceTest {
         return new DefaultsGroup("timeouts", dependency, List.of(settings));
     }
 
+    private static List<String> dependencies(DefaultsService service) {
+        return service.report().groups().stream().map(DefaultsGroup::dependency).toList();
+    }
+
     @Test
     void aggregatesEveryContributorGroup() {
         var a = group("A", unchanged("x"));
         var b = group("B", unchanged("y"));
         var service = new DefaultsService(List.of(() -> a, () -> b));
 
-        assertThat(service.report().groups()).containsExactlyInAnyOrder(a, b);
+        assertThat(service.report().groups(), containsInAnyOrder(a, b));
     }
 
     @Test
@@ -35,7 +43,7 @@ class DefaultsServiceTest {
         var empty = group("Empty");
         var service = new DefaultsService(List.of(() -> nonEmpty, () -> empty));
 
-        assertThat(service.report().groups()).containsExactly(nonEmpty);
+        assertThat(service.report().groups(), contains(nonEmpty));
     }
 
     @Test
@@ -46,9 +54,7 @@ class DefaultsServiceTest {
         // Deliberately supplied in the "wrong" order to prove the service reorders.
         var service = new DefaultsService(List.of(() -> none, () -> two, () -> one));
 
-        assertThat(service.report().groups())
-                .extracting(DefaultsGroup::dependency)
-                .containsExactly("two", "one", "none");
+        assertThat(dependencies(service), contains("two", "one", "none"));
     }
 
     @Test
@@ -58,8 +64,8 @@ class DefaultsServiceTest {
 
         var settings = service.report().groups().getFirst().settings();
 
-        assertThat(settings).first().satisfies(s -> assertThat(s.overridden()).isTrue());
-        assertThat(settings).extracting(DefaultSetting::key).containsExactly("override", "keep", "keep2");
+        assertThat(settings.getFirst().overridden(), is(true));
+        assertThat(settings.stream().map(DefaultSetting::key).toList(), contains("override", "keep", "keep2"));
     }
 
     @Test
@@ -68,9 +74,7 @@ class DefaultsServiceTest {
         var second = group("second", unchanged("b"));
         var service = new DefaultsService(List.of(() -> first, () -> second));
 
-        assertThat(service.report().groups())
-                .extracting(DefaultsGroup::dependency)
-                .containsExactly("first", "second");
+        assertThat(dependencies(service), contains("first", "second"));
     }
 
     @Test
@@ -81,36 +85,35 @@ class DefaultsServiceTest {
 
         var report = service.report();
 
-        assertThat(report.hasOverrides()).isTrue();
-        assertThat(report.overriddenCount()).isEqualTo(1);
+        assertThat(report.hasOverrides(), is(true));
+        assertThat(report.overriddenCount(), is(1L));
 
         var first = report.groups().getFirst();
-        assertThat(first.dependency()).isEqualTo("changed");
-        assertThat(first.hasOverrides()).isTrue();
-        assertThat(first.overriddenCount()).isEqualTo(1);
+        assertThat(first.dependency(), is("changed"));
+        assertThat(first.hasOverrides(), is(true));
+        assertThat(first.overriddenCount(), is(1L));
 
         var last = report.groups().getLast();
-        assertThat(last.hasOverrides()).isFalse();
-        assertThat(last.overriddenCount()).isZero();
+        assertThat(last.hasOverrides(), is(false));
+        assertThat(last.overriddenCount(), is(0L));
     }
 
     @Test
     void reportHasNoOverridesWhenEverythingIsDefault() {
         var report = new DefaultsService(List.of(() -> group("a", unchanged("x")))).report();
 
-        assertThat(report.hasOverrides()).isFalse();
-        assertThat(report.overriddenCount()).isZero();
+        assertThat(report.hasOverrides(), is(false));
+        assertThat(report.overriddenCount(), is(0L));
     }
 
     @Test
     void reportsNoGroupsWhenNoContributors() {
-        assertThat(new DefaultsService(List.of()).report().groups()).isEmpty();
+        assertThat(new DefaultsService(List.of()).report().groups(), is(empty()));
     }
 
     @Test
     void rejectsNullContributors() {
-        assertThatThrownBy(() -> new DefaultsService(null))
-                .isInstanceOf(NullPointerException.class)
-                .hasMessage("contributors");
+        var exception = assertThrows(NullPointerException.class, () -> new DefaultsService(null));
+        assertThat(exception.getMessage(), is("contributors"));
     }
 }

@@ -1,6 +1,11 @@
 package com.github.kutsenko.actuatordefaults.contributor;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.blankOrNullString;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 
 import com.github.kutsenko.actuatordefaults.DefaultSetting;
 import com.github.kutsenko.actuatordefaults.DefaultsGroup;
@@ -20,19 +25,19 @@ class PropertyDefaultsContributorTest {
 
         var connection = setting(PropertyDefaultsContributor.tomcat(environment), "connection-timeout");
 
-        assertThat(connection.defaultValue()).isNull();          // Boot leaves it unset
-        assertThat(connection.actualValue()).isEqualTo(90_000L); // parsed "90s"
-        assertThat(connection.overridden()).isTrue();
-        assertThat(connection.note()).isNotBlank();
+        assertThat(connection.defaultValue(), is(nullValue()));   // Boot leaves it unset
+        assertThat(connection.actualValue(), is(90_000L));        // parsed "90s"
+        assertThat(connection.overridden(), is(true));
+        assertThat(connection.note(), is(not(blankOrNullString())));
     }
 
     @Test
     void reportsConcreteBootDefaultWhenNothingConfigured() {
         var session = setting(PropertyDefaultsContributor.servletWeb(new MockEnvironment()), "session-timeout");
 
-        assertThat(session.defaultValue()).isEqualTo(1_800_000L); // 30 minutes
-        assertThat(session.actualValue()).isNull();
-        assertThat(session.overridden()).isFalse();
+        assertThat(session.defaultValue(), is(1_800_000L)); // 30 minutes
+        assertThat(session.actualValue(), is(nullValue()));
+        assertThat(session.overridden(), is(false));
     }
 
     @Test
@@ -41,8 +46,8 @@ class PropertyDefaultsContributorTest {
 
         var session = setting(PropertyDefaultsContributor.servletWeb(environment), "session-timeout");
 
-        assertThat(session.actualValue()).isEqualTo(3_600_000L);
-        assertThat(session.overridden()).isTrue();
+        assertThat(session.actualValue(), is(3_600_000L));
+        assertThat(session.overridden(), is(true));
     }
 
     // ---- generic behaviour (io / data sizes) --------------------------------
@@ -51,12 +56,12 @@ class PropertyDefaultsContributorTest {
     void parsesDataSizeAndReportsBytesWithConcreteDefault() {
         var multipart = PropertyDefaultsContributor.servletMultipart(new MockEnvironment()).contribute();
 
-        assertThat(multipart.category()).isEqualTo("io");
+        assertThat(multipart.category(), is("io"));
         var maxFile = setting(multipart, "max-file-size");
-        assertThat(maxFile.unit()).isEqualTo("bytes");
-        assertThat(maxFile.defaultValue()).isEqualTo(1_048_576L);  // 1MB
-        assertThat(maxFile.actualValue()).isNull();
-        assertThat(maxFile.overridden()).isFalse();
+        assertThat(maxFile.unit(), is("bytes"));
+        assertThat(maxFile.defaultValue(), is(1_048_576L));  // 1MB
+        assertThat(maxFile.actualValue(), is(nullValue()));
+        assertThat(maxFile.overridden(), is(false));
     }
 
     @Test
@@ -65,8 +70,8 @@ class PropertyDefaultsContributorTest {
 
         var maxFile = setting(PropertyDefaultsContributor.servletMultipart(environment), "max-file-size");
 
-        assertThat(maxFile.actualValue()).isEqualTo(5_242_880L); // 5MB
-        assertThat(maxFile.overridden()).isTrue();
+        assertThat(maxFile.actualValue(), is(5_242_880L)); // 5MB
+        assertThat(maxFile.overridden(), is(true));
     }
 
     @Test
@@ -74,42 +79,43 @@ class PropertyDefaultsContributorTest {
         var env = new MockEnvironment();
 
         var tomcatIo = PropertyDefaultsContributor.tomcatIo(env).contribute();
-        assertThat(setting(tomcatIo, "max-http-form-post-size").defaultValue()).isEqualTo(2_097_152L); // 2MB
-        assertThat(setting(tomcatIo, "max-http-request-header-size").defaultValue()).isEqualTo(8_192L); // 8KB
+        assertThat(setting(tomcatIo, "max-http-form-post-size").defaultValue(), is(2_097_152L)); // 2MB
+        assertThat(setting(tomcatIo, "max-http-request-header-size").defaultValue(), is(8_192L)); // 8KB
 
         var netty = PropertyDefaultsContributor.reactorNettyIo(env).contribute();
-        assertThat(setting(netty, "max-initial-line-length").defaultValue()).isEqualTo(4_096L); // 4KB
+        assertThat(setting(netty, "max-initial-line-length").defaultValue(), is(4_096L)); // 4KB
 
         var logback = PropertyDefaultsContributor.logback(env).contribute();
-        assertThat(setting(logback, "max-file-size").defaultValue()).isEqualTo(10_485_760L); // 10MB
-        assertThat(setting(logback, "total-size-cap").note()).isNotBlank();
+        assertThat(setting(logback, "max-file-size").defaultValue(), is(10_485_760L)); // 10MB
+        assertThat(setting(logback, "total-size-cap").note(), is(not(blankOrNullString())));
     }
 
     // ---- catalogue coverage -------------------------------------------------
 
     @Test
     void everyTimeoutFactoryProducesANonEmptyMillisecondGroup() {
-        assertThat(timeoutFactories()).allSatisfy(factory ->
-                assertGroup(factory, "timeouts", "ms"));
+        for (var factory : timeoutFactories())
+            assertGroup(factory, "timeouts", "ms");
     }
 
     @Test
     void everyIoFactoryProducesANonEmptyByteGroup() {
-        assertThat(ioFactories()).allSatisfy(factory ->
-                assertGroup(factory, "io", "bytes"));
+        for (var factory : ioFactories())
+            assertGroup(factory, "io", "bytes");
     }
 
     private static void assertGroup(
             Function<Environment, PropertyDefaultsContributor> factory, String category, String unit) {
         var group = factory.apply(new MockEnvironment()).contribute();
-        assertThat(group.category()).isEqualTo(category);
-        assertThat(group.dependency()).isNotBlank();
-        assertThat(group.settings()).isNotEmpty().allSatisfy(s -> {
-            assertThat(s.unit()).isEqualTo(unit);
-            assertThat(s.actualValue()).isNull(); // nothing configured in a blank environment
+        assertThat(group.category(), is(category));
+        assertThat(group.dependency(), is(not(blankOrNullString())));
+        assertThat(group.settings(), is(not(empty())));
+        for (var s : group.settings()) {
+            assertThat(s.unit(), is(unit));
+            assertThat(s.actualValue(), is(nullValue())); // nothing configured in a blank environment
             if (s.defaultValue() == null)
-                assertThat(s.note()).isNotBlank();
-        });
+                assertThat(s.note(), is(not(blankOrNullString())));
+        }
     }
 
     private static List<Function<Environment, PropertyDefaultsContributor>> timeoutFactories() {

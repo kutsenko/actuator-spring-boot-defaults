@@ -1,6 +1,8 @@
 package com.github.kutsenko.actuatordefaults.autoconfigure;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 
 import com.github.kutsenko.actuatordefaults.autoconfigure.ActuatorDefaultsAutoConfiguration.ElasticsearchDefaultsConfiguration;
 import com.github.kutsenko.actuatordefaults.autoconfigure.ActuatorDefaultsAutoConfiguration.JettyDefaultsConfiguration;
@@ -26,27 +28,26 @@ class ActuatorDefaultsAutoConfigurationBeanMethodsTest {
     @Test
     void classpathAbsentConfigurationsStillBuildTheirContributors() {
         var jetty = new JettyDefaultsConfiguration();
-        assertThat(jetty.jettyTimeoutDefaultsContributor(environment).contribute().dependency()).contains("Jetty");
-        assertThat(jetty.jettyIoDefaultsContributor(environment).contribute().category()).isEqualTo("io");
+        assertThat(jetty.jettyTimeoutDefaultsContributor(environment).contribute().dependency(),
+                containsString("Jetty"));
+        assertThat(jetty.jettyIoDefaultsContributor(environment).contribute().category(), is("io"));
 
         var netty = new ReactorNettyDefaultsConfiguration();
-        assertThat(netty.reactorNettyTimeoutDefaultsContributor(environment).contribute().dependency())
-                .contains("Netty");
-        assertThat(netty.reactorNettyIoDefaultsContributor(environment).contribute().category()).isEqualTo("io");
+        assertThat(netty.reactorNettyTimeoutDefaultsContributor(environment).contribute().dependency(),
+                containsString("Netty"));
+        assertThat(netty.reactorNettyIoDefaultsContributor(environment).contribute().category(), is("io"));
 
         var reactive = new ReactiveHttpClientDefaultsConfiguration();
-        assertThat(reactive.reactiveHttpClientTimeoutDefaultsContributor(environment).contribute().dependency())
-                .contains("reactive");
-        assertThat(reactive.webfluxMultipartIoDefaultsContributor(environment).contribute().dependency())
-                .contains("WebFlux");
+        assertThat(reactive.reactiveHttpClientTimeoutDefaultsContributor(environment).contribute().dependency(),
+                containsString("reactive"));
+        assertThat(reactive.webfluxMultipartIoDefaultsContributor(environment).contribute().dependency(),
+                containsString("WebFlux"));
         assertThat(new RedisDefaultsConfiguration()
-                .redisTimeoutDefaultsContributor(environment).contribute().dependency())
-                .contains("Redis");
+                .redisTimeoutDefaultsContributor(environment).contribute().dependency(), containsString("Redis"));
         assertThat(new ElasticsearchDefaultsConfiguration()
-                .elasticsearchTimeoutDefaultsContributor(environment).contribute().dependency())
-                .contains("Elasticsearch");
+                .elasticsearchTimeoutDefaultsContributor(environment).contribute().dependency(),
+                containsString("Elasticsearch"));
         assertThat(new KafkaDefaultsConfiguration()
-                .kafkaTimeoutDefaultsContributor(environment).contribute().dependency())
-                .contains("Kafka");
+                .kafkaTimeoutDefaultsContributor(environment).contribute().dependency(), containsString("Kafka"));
     }
 }

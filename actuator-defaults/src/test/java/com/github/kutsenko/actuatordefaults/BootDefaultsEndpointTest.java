@@ -1,7 +1,9 @@
 package com.github.kutsenko.actuatordefaults;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -18,13 +20,12 @@ class BootDefaultsEndpointTest {
 
         var endpoint = new BootDefaultsEndpoint(service);
 
-        assertThat(endpoint.bootDefaults()).isSameAs(report);
+        assertThat(endpoint.bootDefaults(), is(sameInstance(report)));
     }
 
     @Test
     void rejectsNullService() {
-        assertThatThrownBy(() -> new BootDefaultsEndpoint(null))
-                .isInstanceOf(NullPointerException.class)
-                .hasMessage("service");
+        var exception = assertThrows(NullPointerException.class, () -> new BootDefaultsEndpoint(null));
+        assertThat(exception.getMessage(), is("service"));
     }
 }
